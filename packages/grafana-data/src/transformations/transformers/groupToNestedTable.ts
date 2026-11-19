@@ -221,7 +221,12 @@ export const groupToNestedTable: DataTransformerInfo<
             const rule = findMatchingRule(field, frame, data, options.rules)!;
             const fieldName = getFieldDisplayName(field);
             const { aggregations } = rule;
+            // Initialise every aggregation up front so that an empty input (no groups)
+            // still yields empty value arrays rather than undefined.
             const valuesByAggregation: Record<string, unknown[]> = {};
+            for (const aggregation of aggregations) {
+              valuesByAggregation[aggregation] = [];
+            }
 
             valuesByGroupKey.forEach((value) => {
               const fieldWithValuesForGroup = value[fieldName];
@@ -231,9 +236,6 @@ export const groupToNestedTable: DataTransformerInfo<
               });
 
               for (const aggregation of aggregations) {
-                if (!Array.isArray(valuesByAggregation[aggregation])) {
-                  valuesByAggregation[aggregation] = [];
-                }
                 valuesByAggregation[aggregation].push(results[aggregation]);
               }
             });
